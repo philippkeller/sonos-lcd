@@ -1,0 +1,4 @@
+adafruit-circuitpython-rgb-display
+Pillow
+soco
+evdev
