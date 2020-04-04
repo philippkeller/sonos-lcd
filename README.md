@@ -2,10 +2,12 @@
 
 1. `sudo apt-get install python3-numpy` so screen drawing doesn't totally suck (about 13x speed increase!)
 2. `pip3 install -r requirements.txt`
+3. clone this repo into your home directory /home/pi/
+4. to start the display at startup of pi, add `sudo -u pi /usr/bin/python3 /home/pi/sonos-lcd/main.py &` to /etc/rc.local
 
 # Running
 
-Start with `./do.py`
+Start with `./main.py`
 
 If you want to debug on OSX (with the mini-screen displayed on your laptop screen) install tkinter.
 
