@@ -1,3 +1,14 @@
+# To install
+
+1. `sudo apt-get install python3-numpy` so screen drawing doesn't totally suck (about 13x speed increase!)
+2. `pip3 install -r requirements.txt`
+
+# Running
+
+Start with `./do.py`
+
+If you want to debug on OSX (with the mini-screen displayed on your laptop screen) install tkinter.
+
 # Needed Hardware
 
 - raspberry zero W (unpopulated, that is without pin header), e.g. from [adafruit](https://www.adafruit.com/product/3400) for $10
