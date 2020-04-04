@@ -1,8 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from PIL import Image, ImageDraw, ImageFont
 import os, sys
 import time
+from collections import defaultdict
 
 
 from timeit import default_timer as timer
@@ -54,7 +55,7 @@ class Status():
 
   def should_redraw_screen(self, reset=True):
     """
-    did something change so search to sonos should be sent?
+    did something change so screen should be redrawn?
     """
     res = self._redraw_screen
     if reset:
@@ -96,6 +97,7 @@ class Controller():
     self.draw = ImageDraw.Draw(self.image)
     self.speakers = self.sonos.speakers()
     self.status = Status()
+    self.last_drawn = defaultdict(list)
 
   def dialogue(self, options):
     DIAG_PADDING = 5
@@ -129,71 +131,99 @@ class Controller():
       else:
         return None
 
+  def should_redraw(self, _id, *data):
+    """
+    see if something in this area has changed so self.draw.* should
+    be triggered. As most of the CPU time goes into PIL redrawing
+    this should give quite a bit of a performance boost
+    """
+    res = True
+    if self.last_drawn[_id] == data:
+      res = False
+    self.last_drawn[_id] = data
+    return res
+
   def refresh(self):
     start = timer()
-    self.draw.rectangle((0, 0, self.display.width, self.display.height), 
-                        fill=(0, 0, 0, 0))
-    print(f'draw black: {timer() - start:.6f}')
+    # draw black
+    # self.draw.rectangle((0, 0, self.display.width, self.display.height), fill=(0, 0, 0, 0))
+    # print(f'draw black: {timer() - start:.6f}')
+    print()
 
     # display speakers
-    start = timer()
-    x = PADDING
-    for i, speaker in enumerate(self.speakers):
-      text_width, _ = FONT.getsize(speaker)
-      if i == self.status.speaker:
-        self.draw.rectangle((x-(PADDING/2), 0, x+text_width, self.line_height), 
-                            fill=COLOR_HIGHLIGHT)
-        self.draw.text((x,0), speaker, font=FONT, fill=(0,0,0))
-      else:
-        self.draw.text((x,0), speaker, font=FONT)
-      x += text_width + PADDING
-    print(f'draw speakers: {timer() - start:.6f}')
+    if self.should_redraw('speakers', self.speakers, self.status.speaker):
+      start = timer()
+      x = PADDING
+      for i, speaker in enumerate(self.speakers):
+        text_width, _ = FONT.getsize(speaker)
+        if i == self.status.speaker:
+          self.draw.rectangle((x-(PADDING/2), 0, x+text_width, self.line_height), 
+                              fill=COLOR_HIGHLIGHT)
+          self.draw.text((x,0), speaker, font=FONT, fill=(0,0,0))
+        else:
+          self.draw.rectangle((x-(PADDING/2), 0, x+text_width, self.line_height), 
+                              fill=COLOR_BLACK)
+          self.draw.text((x,0), speaker, font=FONT)
+        x += text_width + PADDING
+      print(f'draw speakers: {timer() - start:.6f}')
 
     # display volume and play/pause symbol
-    start = timer()
-    text_width, _ = FONT.getsize(self.vol_play)
-    self.draw.text((self.display.width-text_width,0), self.vol_play, 
-                   font=FONT, fill=(99,99,99))
-    print(f'draw volume: {timer() - start:.6f}')
+    if self.should_redraw('volume', self.vol_play):
+      start = timer()
+      text_width, _ = FONT.getsize(self.vol_play)
+      self.draw.text((self.display.width-text_width,0), self.vol_play, 
+                    font=FONT, fill=(99,99,99))
+      print(f'draw volume: {timer() - start:.6f}')
 
     # display search results
     start = timer()
     for line_no, line_str in enumerate([i[0] for i in self.items[:NUM_ROWS]]):
-      x,y = PADDING, 20 + line_no*self.line_height
-      if line_no == self.status.row:
-        self.draw.rectangle((x-(PADDING/2), y, x+self.display.width, y+self.line_height), fill=COLOR_HIGHLIGHT)
-        self.draw.text((x,y), line_str, font=FONT, fill=(0,0,0))
-      else:
-        self.draw.text((x,y), line_str, font=FONT)
+      if self.should_redraw(f'results_line_{line_no}', line_str, line_no == self.status.row):
+        x,y = PADDING, 20 + line_no*self.line_height
+        if line_no == self.status.row:
+          self.draw.rectangle((x-(PADDING/2), y, x+self.display.width, y+self.line_height), fill=COLOR_HIGHLIGHT)
+          self.draw.text((x,y), line_str, font=FONT, fill=(0,0,0))
+        else:
+          self.draw.rectangle((x-(PADDING/2), y, x+self.display.width, y+self.line_height), fill=COLOR_BLACK)
+          self.draw.text((x,y), line_str, font=FONT)
+    # draw remaining lines black
+    for line_no2 in range(line_no + 1, NUM_ROWS):
+      if self.should_redraw(f'results_line_{line_no2}', ''):
+        x,y = PADDING, 20 + line_no2*self.line_height
+        self.draw.rectangle((x-(PADDING/2), y, x+self.display.width, y+self.line_height), fill=COLOR_BLACK)
     print(f'draw results: {timer() - start:.6f}')
 
     # display enter area
-    start = timer()
-    if self.status.context != 3:
-      self.draw.text((10,95), f"> {self.status.entered}", font=FONT)
-    print(f'draw search text: {timer() - start:.6f}')
+    if self.should_redraw('enter', self.status.entered, self.status.context):
+      start = timer()
+      x,y = 10,95
+      self.draw.rectangle((x, y, x+self.display.width, y+self.line_height), fill=COLOR_BLACK)
+      if self.status.context != 3:
+        self.draw.text((10,95), f"> {self.status.entered}", font=FONT)
+      print(f'draw search text: {timer() - start:.6f}')
 
 
     # display contexts (f1, f2, …)
-    start = timer()
-    x = PADDING
-    for i, c in enumerate(CONTEXTS):
-      f = f'F{i+1}'
-      txt = c['name']
-      if i == self.status.context:
-        color_text = (0,0,0)
-        color_box = COLOR_WHITE
-      else:
-        color_text = COLOR_WHITE
-        color_box = COLOR_GREY
-      width = 25
-      text_width, _ = FONT.getsize(txt)
-      padding = (width-text_width)/2
-      self.draw.rectangle((x,110,x+width,125), fill=color_box)
-      self.draw.text((x+9,111), f, font=FONT_SMALL, fill=color_text)
-      self.draw.text((x+3+padding,117), txt, font=FONT_SMALL, fill=color_text)
-      x += width + 3
-    print(f'draw contexts: {timer() - start:.6f}')
+    if self.should_redraw('contexts', self.status.context):
+      start = timer()
+      x = PADDING
+      for i, c in enumerate(CONTEXTS):
+        f = f'F{i+1}'
+        txt = c['name']
+        if i == self.status.context:
+          color_text = (0,0,0)
+          color_box = COLOR_WHITE
+        else:
+          color_text = COLOR_WHITE
+          color_box = COLOR_GREY
+        width = 25
+        text_width, _ = FONT.getsize(txt)
+        padding = (width-text_width)/2
+        self.draw.rectangle((x,110,x+width,125), fill=color_box)
+        self.draw.text((x+9,111), f, font=FONT_SMALL, fill=color_text)
+        self.draw.text((x+3+padding,117), txt, font=FONT_SMALL, fill=color_text)
+        x += width + 3
+      print(f'draw contexts: {timer() - start:.6f}')
 
 
     if self.debug:
