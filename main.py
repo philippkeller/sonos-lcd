@@ -19,6 +19,14 @@ COLOR_GREY = (80,80,80)
 COLOR_WHITE = (255,255,255)
 COLOR_BLACK = (0,0,0)
 PADDING = 10
+
+# after how many seconds no keypress does the screen redraw 
+# (to e.g. show volume changes done right at the sonos speakers)
+
+KEYPRESS_TIMEOUT = 10
+
+IDLE_SLEEP_TIMEOUT = 10
+
 CONTEXTS = [dict(id='albums', name='album'), 
             dict(id='tracks', name='song'),
             dict(id='artists', name='artist'),
@@ -232,8 +240,6 @@ class Controller():
     if self.debug:
       print(f'display: {timer() - start:.4f}')
 
-
-
   def handle_keypress(self, c):
     if c == 'KEY_BACKSPACE':
       self.status.entered = self.status.entered[:-1]
@@ -283,15 +289,19 @@ class Controller():
       self.status.context = 3
     elif c == 'KEY_F5':
       self.status.context = 4
-    elif c is None:
-      self.status._refetch_volume = True
     elif len(c) == 1:
       self.status.entered += c
       self.status.row = 0
     elif self.debug:
       print(f'handling of {c} not supported')
 
-
+    if c is None:
+      self.count_idle += 1
+      if count_idle * KEYPRESS_TIMEOUT > IDLE_SLEEP_TIMEOUT:
+        print('go to sleep')
+      self.status._refetch_volume = True
+    else:
+      self.count_idle = 0
 
 
   def loop(self):
@@ -306,7 +316,7 @@ class Controller():
         max_items=NUM_ROWS, debug=self.debug)
     self.refresh()
 
-    for c in self.keyboard.getch_generator(debug=self.debug, timeout=5):
+    for c in self.keyboard.getch_generator(debug=self.debug, timeout=KEYPRESS_TIMEOUT):
       try:
         self.handle_keypress(c)
 
