@@ -23,9 +23,9 @@ PADDING = 10
 # after how many seconds no keypress does the screen redraw 
 # (to e.g. show volume changes done right at the sonos speakers)
 
-KEYPRESS_TIMEOUT = 10
+KEYPRESS_TIMEOUT = 2
 
-IDLE_SLEEP_TIMEOUT = 10
+IDLE_SLEEP_TIMEOUT = 2
 
 CONTEXTS = [dict(id='albums', name='album'), 
             dict(id='tracks', name='song'),
@@ -106,6 +106,7 @@ class Controller():
     self.speakers = self.sonos.speakers()
     self.status = Status()
     self.last_drawn = defaultdict(list)
+    self.count_idle = 0
 
   def dialogue(self, options):
     DIAG_PADDING = 5
@@ -153,10 +154,8 @@ class Controller():
 
   def refresh(self):
     start = timer()
-    # draw black
-    # self.draw.rectangle((0, 0, self.display.width, self.display.height), fill=(0, 0, 0, 0))
-    # print(f'draw black: {timer() - start:.6f}')
-    print()
+    if self.debug:
+      print()
 
     # display speakers
     if self.should_redraw('speakers', self.speakers, self.status.speaker):
@@ -173,7 +172,8 @@ class Controller():
                               fill=COLOR_BLACK)
           self.draw.text((x,0), speaker, font=FONT)
         x += text_width + PADDING
-      print(f'draw speakers: {timer() - start:.6f}')
+      if self.debug:
+        print(f'draw speakers: {timer() - start:.6f}')
 
     # display volume and play/pause symbol
     if self.should_redraw('volume', self.vol_play):
@@ -181,7 +181,8 @@ class Controller():
       text_width, _ = FONT.getsize(self.vol_play)
       self.draw.text((self.display.width-text_width,0), self.vol_play, 
                     font=FONT, fill=(99,99,99))
-      print(f'draw volume: {timer() - start:.6f}')
+      if self.debug:
+        print(f'draw volume: {timer() - start:.6f}')
 
     # display search results
     start = timer()
@@ -199,7 +200,8 @@ class Controller():
       if self.should_redraw(f'results_line_{line_no2}', ''):
         x,y = PADDING, 20 + line_no2*self.line_height
         self.draw.rectangle((x-(PADDING/2), y, x+self.display.width, y+self.line_height), fill=COLOR_BLACK)
-    print(f'draw results: {timer() - start:.6f}')
+    if self.debug:
+      print(f'draw results: {timer() - start:.6f}')
 
     # display enter area
     if self.should_redraw('enter', self.status.entered, self.status.context):
@@ -208,7 +210,8 @@ class Controller():
       self.draw.rectangle((x, y, x+self.display.width, y+self.line_height), fill=COLOR_BLACK)
       if self.status.context != 3:
         self.draw.text((10,95), f"> {self.status.entered}", font=FONT)
-      print(f'draw search text: {timer() - start:.6f}')
+      if self.debug:
+        print(f'draw search text: {timer() - start:.6f}')
 
 
     # display contexts (f1, f2, …)
@@ -231,7 +234,8 @@ class Controller():
         self.draw.text((x+9,111), f, font=FONT_SMALL, fill=color_text)
         self.draw.text((x+3+padding,117), txt, font=FONT_SMALL, fill=color_text)
         x += width + 3
-      print(f'draw contexts: {timer() - start:.6f}')
+      if self.debug:
+        print(f'draw contexts: {timer() - start:.6f}')
 
 
     if self.debug:
@@ -289,19 +293,30 @@ class Controller():
       self.status.context = 3
     elif c == 'KEY_F5':
       self.status.context = 4
-    elif len(c) == 1:
+    elif c is not None and len(c) == 1:
       self.status.entered += c
       self.status.row = 0
-    elif self.debug:
+    elif c is not None and self.debug:
       print(f'handling of {c} not supported')
 
     if c is None:
       self.count_idle += 1
-      if count_idle * KEYPRESS_TIMEOUT > IDLE_SLEEP_TIMEOUT:
-        print('go to sleep')
+      if self.count_idle * KEYPRESS_TIMEOUT >= IDLE_SLEEP_TIMEOUT:
+        self.sleep()
       self.status._refetch_volume = True
     else:
       self.count_idle = 0
+
+  def sleep(self):
+    """
+    turn screen to black and wait for keypress before waking up
+    """
+    print('go to sleep')
+    # self.display.backlight_off()
+    gen = self.keyboard.getch_generator(debug=self.debug)
+    next(gen)
+    print('wake up')
+    # self.display.backlight_on()
 
 
   def loop(self):
