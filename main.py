@@ -179,6 +179,8 @@ class Controller():
     if self.should_redraw('volume', self.vol_play):
       start = timer()
       text_width, _ = FONT.getsize(self.vol_play)
+      x = self.display.width-(text_width*2)
+      self.draw.rectangle((x,0,x+text_width*2,self.line_height), fill=COLOR_BLACK)
       self.draw.text((self.display.width-text_width,0), self.vol_play, 
                     font=FONT, fill=(99,99,99))
       if self.debug:

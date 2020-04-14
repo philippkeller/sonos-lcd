@@ -27,7 +27,6 @@ class Screen:
     self.height = height
 
   def display_off(self):
-    print('ssss')
     self.display.rst.switch_to_output(False)
 
   def display_on(self):
