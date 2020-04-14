@@ -26,12 +26,13 @@ class Screen:
     self.width = width
     self.height = height
 
-  def backlight_off(self):
-    self.display._bl.switch_to_output(value=0)
-  def backlight_on(self):
-    self.display._bl.switch_to_output(value=1)
+  def display_off(self):
+    print('ssss')
+    self.display.rst.switch_to_output(False)
+
+  def display_on(self):
+    self.display.rst.switch_to_output(True)
 
   def draw(self, image):
     self.display.image(image)
-
 

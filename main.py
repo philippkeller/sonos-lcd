@@ -25,7 +25,7 @@ PADDING = 10
 
 KEYPRESS_TIMEOUT = 2
 
-IDLE_SLEEP_TIMEOUT = 2
+IDLE_SLEEP_TIMEOUT = 30
 
 CONTEXTS = [dict(id='albums', name='album'), 
             dict(id='tracks', name='song'),
@@ -311,12 +311,10 @@ class Controller():
     """
     turn screen to black and wait for keypress before waking up
     """
-    print('go to sleep')
-    # self.display.backlight_off()
+    self.display.display_off()
     gen = self.keyboard.getch_generator(debug=self.debug)
     next(gen)
-    print('wake up')
-    # self.display.backlight_on()
+    self.display.display_on()
 
 
   def loop(self):
