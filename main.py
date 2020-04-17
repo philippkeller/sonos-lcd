@@ -36,7 +36,6 @@ CONTEXTS = [dict(id='albums', name='album'),
             dict(id='tracks', name='song'),
             dict(id='artists', name='artist'),
             dict(id='radio_stations', name='radio'),
-            dict(id='sonos_playlists', name='plist'),
             ]
 
 
@@ -151,7 +150,7 @@ class Controller():
                 print('up')
                 continue
 
-            self.status._redraw_screen = True
+            self.display.draw(self.image)
 
             if c == 'KEY_ENTER':
                 return chosen
@@ -280,9 +279,11 @@ class Controller():
         elif c == 'KEY_LEFT':
             self.status.speaker = (
                 self.status.speaker - 1) % len(self.speakers)
+            self.status._refetch_volume = True
         elif c == 'KEY_RIGHT':
             self.status.speaker = (
                 self.status.speaker + 1) % len(self.speakers)
+            self.status._refetch_volume = True
         elif c == 'KEY_ENTER':
             if CONTEXTS[self.status.context]['id'] == 'radio_stations':
                 self.sonos.play(self.status.speaker,
@@ -314,6 +315,11 @@ class Controller():
             self.sonos.next(self.status.speaker)
         elif c == 'KEY_PREVIOUSSONG':
             self.sonos.previous(self.status.speaker)
+        elif c == 'KEY_SEARCH':
+            self.sonos.reindex()
+        elif c == 'KEY_CONFIG':
+            self.sonos.cycle_repeat(self.status.speaker)
+            self.status._refetch_volume = True
         elif c == 'KEY_F1':
             self.status.context = 0
         elif c == 'KEY_F2':
