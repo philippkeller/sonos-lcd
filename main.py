@@ -146,7 +146,7 @@ class Controller():
                 print('up')
                 continue
 
-            self.status._redraw_screen = True
+            self.display.draw(self.image)
 
             if c == 'KEY_ENTER':
                 return chosen
@@ -275,9 +275,11 @@ class Controller():
         elif c == 'KEY_LEFT':
             self.status.speaker = (
                 self.status.speaker - 1) % len(self.speakers)
+            self.status._refetch_volume = True
         elif c == 'KEY_RIGHT':
             self.status.speaker = (
                 self.status.speaker + 1) % len(self.speakers)
+            self.status._refetch_volume = True
         elif c == 'KEY_ENTER':
             if CONTEXTS[self.status.context]['id'] == 'radio_stations':
                 self.sonos.play(self.status.speaker,
