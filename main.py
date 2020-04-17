@@ -112,30 +112,38 @@ class Controller():
     DIAG_PADDING = 5
     chosen = 0
     inp = self.keyboard.getch_generator(debug=self.debug)
+    image_dialogue = self.image.copy()
+    draw_dialogue = ImageDraw.Draw(image_dialogue)
     while True:
       _, h = FONT.getsize('E')
       height = len(options) * h + (DIAG_PADDING * (len(options)))
       width = max(FONT.getsize(o)[0] for o in options) + 2*DIAG_PADDING
       x = (self.display.width - width)/2
       y = (self.display.height - height)/2
-      self.draw.rectangle((x,y,x+width,y+height), fill=COLOR_GREY, outline=COLOR_WHITE)
+      draw_dialogue.rectangle((x,y,x+width,y+height), fill=COLOR_GREY, outline=COLOR_WHITE)
       for i, o in enumerate(options):
         if i == chosen:
-          self.draw.rectangle((x+1,y+1,x+width-1,y+h+DIAG_PADDING), fill=COLOR_HIGHLIGHT)
+          draw_dialogue.rectangle((x+1,y+1,x+width-1,y+h+DIAG_PADDING), fill=COLOR_HIGHLIGHT)
           col = COLOR_BLACK
         else:
           col = COLOR_WHITE
 
-        self.draw.text((x+DIAG_PADDING,y+DIAG_PADDING), o, font=FONT, fill=col)
+        draw_dialogue.text((x+DIAG_PADDING,y+DIAG_PADDING), o, font=FONT, fill=col)
         y += h + DIAG_PADDING - 1
-      self.display.draw(self.image)
+      self.display.draw(image_dialogue)
       c = next(inp)
       if c == 'KEY_DOWN':
         chosen = (chosen + 1) % len(options)
+        print('down')
+        continue
       elif c == 'KEY_UP':
         chosen = (chosen - 1) % len(options)
-      elif c == 'KEY_ENTER':
-        self.status._redraw_screen = True
+        print('up')
+        continue
+
+      self.status._redraw_screen = True
+
+      if c == 'KEY_ENTER':
         return chosen
       else:
         return None

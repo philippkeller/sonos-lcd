@@ -45,7 +45,7 @@ class Keyboard:
           c3 = sys.stdin.read(1)
           yield f'KEY_F{ord(c3)-79}'
         else:
-          print(f'unknown control character {suff}')
+          print(f'unknown control character {c2}')
           yield 'AA'
       elif ord(c) == 127:
         yield 'KEY_BACKSPACE'
