@@ -77,7 +77,9 @@ class Sonos():
       _uri, _meta = uri
       s.play_uri(_uri, _meta)
     else:
-      s.play_uri(uri)
+      s.clear_queue()
+      s.add_uri_to_queue(uri=uri)
+      s.play_from_queue(index=0)
 
   def add_to_queue(self, speaker_number, uri):
     _, s = self._speakers[speaker_number]

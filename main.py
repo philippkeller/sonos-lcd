@@ -196,6 +196,7 @@ class Controller():
 
     # display search results
     start = timer()
+    line_no = 0
     for line_no, line_str in enumerate([i[0] for i in self.items[:NUM_ROWS]]):
       if self.should_redraw(f'results_line_{line_no}', line_str, line_no == self.status.row):
         x,y = PADDING, 20 + line_no*self.line_height
