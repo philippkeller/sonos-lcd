@@ -32,7 +32,6 @@ CONTEXTS = [dict(id='albums', name='album'),
             dict(id='tracks', name='song'),
             dict(id='artists', name='artist'),
             dict(id='radio_stations', name='radio'),
-            dict(id='sonos_playlists', name='plist'),
             ]
 
 
@@ -310,6 +309,11 @@ class Controller():
             self.sonos.next(self.status.speaker)
         elif c == 'KEY_PREVIOUSSONG':
             self.sonos.previous(self.status.speaker)
+        elif c == 'KEY_SEARCH':
+            self.sonos.reindex()
+        elif c == 'KEY_CONFIG':
+            self.sonos.cycle_repeat(self.status.speaker)
+            self.status._refetch_volume = True
         elif c == 'KEY_F1':
             self.status.context = 0
         elif c == 'KEY_F2':

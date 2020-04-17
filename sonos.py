@@ -96,6 +96,13 @@ class Sonos():
             start = timer()
         t = s.get_current_transport_info()
 
+        play_mode = ''
+        m = s.play_mode
+        if m == 'REPEAT_ALL':
+            play_mode = '© '
+        elif m == 'REPEAT_ONE':
+            play_mode = '® '
+
         play_pause = ''
         if t['current_transport_state'] == 'PAUSED_PLAYBACK':
             play_pause = "| | "
@@ -103,7 +110,7 @@ class Sonos():
             play_pause = u"\u25B6"
         elif t['current_transport_state'] == 'STOPPED':
             play_pause = "\u25A0"
-        res = f'{play_pause} {s.volume}%'
+        res = f'{play_mode}{play_pause} {s.volume}%'
         if debug:
             print(f'fetch status: {timer() - start}')
         return res
@@ -128,6 +135,20 @@ class Sonos():
             s.play()
         elif t['current_transport_state'] == 'PLAYING':
             s.pause()
+
+    def reindex(self):
+        soco.music_library.MusicLibrary().start_library_update()
+
+    def cycle_repeat(self, speaker_number):
+        _, s = self._speakers[speaker_number]
+        m1 = s.play_mode
+        if m1 == 'NORMAL':
+            m2 = 'REPEAT_ALL'
+        elif m1 == 'REPEAT_ALL':
+            m2 = 'REPEAT_ONE'
+        else:
+            m2 = 'NORMAL'
+        s.play_mode = m2
 
 
 if __name__ == '__main__':
