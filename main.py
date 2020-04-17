@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 from PIL import Image, ImageDraw, ImageFont
 import os
@@ -6,8 +7,11 @@ import sys
 import time
 from collections import defaultdict
 
-
 from timeit import default_timer as timer
+import gettext
+
+translate = gettext.translation('base', './locales')
+_ = translate.gettext
 
 # found here: https://www.dafont.com/bitmap.php
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -284,7 +288,7 @@ class Controller():
                 self.sonos.play(self.status.speaker,
                                 self.items[self.status.row][1])
             else:
-                choice = self.dialogue(['Ersetzen', 'Hinten anfügen'])
+                choice = self.dialogue([_('replace'), _('add to end of queue')])
                 if choice == 0:
                     if self.debug:
                         print(f'playing {self.items[self.status.row][0]}')
