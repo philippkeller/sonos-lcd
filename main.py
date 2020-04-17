@@ -355,7 +355,7 @@ class Controller():
         if self.status.should_redraw_screen():
           self.refresh()
       except Exception as e:
-        f = open('/var/log/sonos_lcd.log', 'a+')
+        f = open('/tmp/sonos_lcd.log', 'a+')
         f.write(str(e) + "\n")
         f.close()
         print(e)
