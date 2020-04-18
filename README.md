@@ -1,4 +1,4 @@
-![preview](https://drive.google.com/uc?export=view&id=1_htTSy9UouVx2_EvRcidvrlvKEXchOqi)
+![preview](doc/sonos_keyboard.gif)
 
 # To install
 
