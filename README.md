@@ -1,3 +1,5 @@
+![preview](https://drive.google.com/uc?export=view&id=1_htTSy9UouVx2_EvRcidvrlvKEXchOqi)
+
 # To install
 
 1. `sudo apt-get install python3-numpy` so screen drawing doesn't totally suck (about 13x speed increase!)
