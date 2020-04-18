@@ -10,13 +10,14 @@ from collections import defaultdict
 from timeit import default_timer as timer
 import gettext
 
-translate = gettext.translation('base', './locales')
-_ = translate.gettext
 
-# found here: https://www.dafont.com/bitmap.php
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 
+translate = gettext.translation('base', os.path.join(SCRIPT_DIR, 'locales'))
+_ = translate.gettext
+
 NUM_ROWS = 7
+# found here: https://www.dafont.com/bitmap.php
 FONT = ImageFont.truetype(f'{SCRIPT_DIR}/minecraftia.ttf', 8)
 FONT_SMALL = ImageFont.truetype(f'{SCRIPT_DIR}/minecraftia.ttf', 6)
 COLOR_HIGHLIGHT = (210, 0, 125)
@@ -196,9 +197,9 @@ class Controller():
         if self.should_redraw('volume', self.vol_play):
             start = timer()
             text_width, _ = FONT.getsize(self.vol_play)
-            x = self.display.width-(text_width*2)
+            x = self.display.width-(text_width*1.5)
             self.draw.rectangle(
-                (x, 0, x+text_width*2, self.line_height), fill=COLOR_BLACK)
+                (x, 0, x+text_width*1.5, self.line_height), fill=COLOR_BLACK)
             self.draw.text((self.display.width-text_width, 0), self.vol_play,
                            font=FONT, fill=(99, 99, 99))
             if self.debug:
