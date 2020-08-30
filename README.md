@@ -23,4 +23,6 @@ If you want to debug on OSX (with the mini-screen displayed on your laptop scree
 
 Total costs: $58.70
 
+# Soldering
 
+![soldering](doc/IMG_20200126_202320.jpg)
